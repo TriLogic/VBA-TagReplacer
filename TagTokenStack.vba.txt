@@ -1,0 +1,39 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "TagTokenStack"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Dim mItems() As TagToken
+
+Sub Class_Initialize()
+    ReDim mItems(0)
+End Sub
+
+Public Property Get Count() As Integer
+    Count = UBound(mItems)
+End Property
+
+Public Sub Push(Item As TagToken)
+    ReDim Preserve mItems(UBound(mItems) + 1)
+    Set mItems(UBound(mItems)) = Item
+End Sub
+
+Public Sub Pop()
+    ReDim Preserve mItems(UBound(mItems) - 1)
+End Sub
+
+Public Function Peek() As TagToken
+    Set Peek = mItems(UBound(mItems))
+End Function
+
+Public Sub Clear()
+    ReDim mItems(0)
+End Sub
+

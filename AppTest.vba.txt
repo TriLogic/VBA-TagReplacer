@@ -1,0 +1,19 @@
+Attribute VB_Name = "AppMain"
+Option Compare Database
+Option Explicit
+
+Const InBuffer As String = "abc${def}ghi${jkl${mno}pqr${stu${vw}x}y}z"
+'Const InBuffer As String = "ab${cd${ef${gh${ij${kl${mn${op${qr${st${uv${wx${yz}}}}}}}}}}}}"
+'Const InBuffer As String = "${${${${${${${${${${${${${${a}${b}}${${cd}}}ef}gh}ij}kl}mn}op}qr}st}uv}wx}yz}"
+'Const InBuffer As String = "abcdefghijklmnopqrstuvwxyz"
+
+Sub Main()
+
+    Dim Rpl As New TagReplacer
+    
+    Rpl.Setup InBuffer
+    
+    Debug.Print Rpl.Execute()
+
+End Sub
+

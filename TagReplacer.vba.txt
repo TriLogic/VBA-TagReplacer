@@ -1,0 +1,188 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "TagReplacer"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Dim Stk As New TagTokenStack
+Dim Tkz As New TagTokenizer
+Dim Tkn As TagToken
+Dim Str As String
+Dim Tag As New TagSource
+
+Public Sub Setup(Pattern As String, Optional Tags As TagSource)
+
+    Call Clear
+    Call Tkz.Setup(Pattern)
+
+End Sub
+
+Public Sub Clear()
+    
+    Call Stk.Clear
+    Call Tkz.Clear
+    Set Tkn = Nothing
+    Str = ""
+    
+End Sub
+
+Public Function Execute() As String
+
+    Call Clear
+
+    Do While Tkz.GetToken(Tkn)
+    
+        Select Case Tkn.TkType
+        Case TkNUL
+            Exit Do
+        Case TkTXT
+            Stk.Push Tkn
+        Case TkLHS
+            Stk.Push Tkn
+        Case TkRHS
+            Stk.Push Tkn
+        
+            ' Tag closure occurred
+            If Not Reduce(Stk, True) Then
+                Exit Do
+            End If
+        
+            ' Retrieve the tags value
+            If Not Tag.GetTag(Stk.Peek().TkValue, Str) Then
+                Err.Raise 65001, , FormatError(Stk.Peek())
+            End If
+            
+            ' Perform the replacement
+            Stk.Peek().TkValue = Str
+        End Select
+    Loop
+    
+    Select Case Stk.Count
+    Case 0
+            Err.Raise 65001, , FormatError(Nothing)
+    Case 1
+        If Stk.Peek().TkType <> TkTXT Then
+            Err.Raise 65001, , FormatError(Stk.Peek())
+        End If
+    Case Else
+        If Stk.Peek().TkType <> TkTXT Then
+            Err.Raise 65001, , FormatError(Stk.Peek())
+        End If
+    
+        If Not Reduce(Stk, False) Then
+            Err.Raise 65001, , FormatError(Stk.Peek())
+        End If
+    End Select
+    
+    Execute = Stk.Peek().TkValue
+    
+End Function
+
+Private Function Reduce(Stack As TagTokenStack, RequireLHS As Boolean) As Boolean
+
+    If Stack.Count = 0 Then
+        Reduce = False
+        Exit Function
+    End If
+
+    Dim T As New TagToken, ST As TagToken, RHS As TagToken
+    T.TkType = TkTXT
+
+    If RequireLHS Then
+        Set RHS = Stack.Peek()
+        Stack.Pop
+    End If
+
+    ' Combine all text: [LHS] | TXT [|TXT] | [RHS]
+    ' It is combined into the local token T
+    Do While Stack.Count > 0
+        
+        If Stack.Peek().TkType <> TkTXT Then
+            Exit Do
+        End If
+        
+        Set ST = Stack.Peek()
+        T.TkValue = ST.TkValue & T.TkValue
+        T.TkIndex = ST.TkIndex
+        
+        ' Remove the top token
+        Stack.Pop
+
+    Loop
+    
+    ' Empty text is fatal
+    If T.TkValue = "" Then
+        If RequireLHS And Stack.Count = 0 Then
+            Stack.Push RHS
+        End If
+        Reduce = False
+        Exit Function
+    End If
+
+    ' Are we looking for a LHS token?
+    If RequireLHS Then
+    
+        ' Is there one on the stack?
+        If Stack.Count = 0 Then
+            ' Push the token that generated the error
+            Stack.Push RHS
+            Reduce = False
+            Exit Function
+        End If
+    
+        Set ST = Stack.Peek()
+        
+        If ST.TkType <> TkLHS Then
+            ' Push the token that generated the error
+            Stack.Push RHS
+            Reduce = False
+            Exit Function
+        End If
+        
+        Stack.Pop
+        Stack.Push T
+        
+        ' Success
+        Reduce = True
+        Exit Function
+    
+    End If
+
+    ' No LHS is required so at this point
+    ' the stack should be completely empty.
+    Stack.Push T
+
+    ' Is the stack empty?
+    If Stack.Count > 1 Then
+    
+        ' this happens if we have unclosed
+        Do While Stack.Count > 1 And Stack.Peek().TkType <> TkLHS
+            Stack.Pop
+        Loop
+        
+        Reduce = False
+        Exit Function
+    
+    End If
+
+    Reduce = True
+
+End Function
+
+Private Function FormatError(Tkn As TagToken) As String
+
+    If Tkn Is Nothing Then
+        FormatError = "Invalid Tag Structure"
+    Else
+        FormatError = "Invalid Tag Structure @(" & Tkn.TkIndex & ", """ & Tkn.TkValue & """)"
+    End If
+
+End Function
+
+

@@ -1,0 +1,10 @@
+Attribute VB_Name = "Enums"
+Option Compare Database
+Option Explicit
+
+Enum TagtokenType
+    TkNUL = 0
+    TkTXT = 1
+    TkLHS = 2
+    TkRHS = 3
+End Enum
