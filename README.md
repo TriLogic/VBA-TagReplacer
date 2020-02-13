@@ -11,7 +11,7 @@ In this example the value of the tag '${Temp}' would be replaced with whatever t
 
 Tags may contain other tags: "Hello World! The temperature outside is ${TempIn${Units}}${Units}." 
    
-In this case the tag '${Units}' might replaced with the value 'F' or 'C' and the resulting ${TempInC} or ${TempInF} used to retrieve the corresponding temperature value according to the termerature scale desired with the final resulting being:
+In this case the tag '${Units}' might replaced with the value 'F' or 'C' and the resulting ${TempInC} or ${TempInF} used to retrieve the corresponding temperature value according to the temperature scale desired with the final resulting being:
 
    "Hello World! The temperature outside is 78F."
    
