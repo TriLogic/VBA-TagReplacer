@@ -8,7 +8,7 @@ operations.
    Where '${Temp}' will be replaced with whatever the replacement value for 'Temp' would be.
 2) Tags may contain other tags: "Hello World! It is ${TempIn${Units}} degrees ${Units}." 
    In this case the tag '${Units}' might replaced with the value 'F' or 'C'
-   and the result used to retrieve the corresponding temperature value according to the
+   and the resulting ${TempInC} or ${TempInF} used to retrieve the corresponding temperature value according to the
    termerature scale desired.
    
 The code was originally written in MSAccess and designed to "compile" a pattern to be used when iterating through 
